@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="DOCKER" />
+        <module name="TAREA4" />
+        <module name="AREP-TALLER4-2023-1" />
+        <module name="LAB04-AREP-2022-2" />
+        <module name="taller4-arep" />
+        <module name="AREP-LAB4" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>
