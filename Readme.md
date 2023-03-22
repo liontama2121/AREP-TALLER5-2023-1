@@ -97,12 +97,12 @@ y nos saldra la siguiente ventana
 <img src="./resources/images/05-Login.jpg" alt="login" />
 
 Cabe recalcar que el login solo detectara los siguientes usuarios
-```java
+
 private static void generateUsers() {
  users.put("juank", hasher.hash("juan133812"));
         users.put("leon", hasher.hash("solopola"));
         users.put("jorge", hasher.hash("srcode"));
-        users.put("test", hasher.hash("test"));}```
+        users.put("test", hasher.hash("test"));
 
 ## Usuarios no autenticados o no existentes
 
