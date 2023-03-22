@@ -1,126 +1,139 @@
-
-# TALLER DE DE MODULARIZACIÓN CON VIRTUALIZACIÓN E INTRODUCCIÓN A DOCKER Y A AWS
-
-En este taller encontrará una aplicación web pequeña usando el framework Spark java (http://sparkjava.com/).
-Ademas se van a construir varios contenedores docker para las aplicaciónes y base datos que posteriormente
-se desplegaremos en una instancia EC2.
-
-## Prerrequisitos
-
-- git version 2.25.1
-- Apache Maven version: 4.0.0
-- java version "1.8.0"
-- Docker version 4.0.1
-### Ejecucion
-
-Para poder usar el proyecto lo primero que se debe realizar es clonar el proyecto utilizando el siguiente comando desde una terminal:
-
-```
-https://github.com/liontama2121/AREP-TALLER4-2023-1
-```
-
-Luego debe redirigirse por medio de la terminal al directorio en donde se clonó el proyecto la cual contendrá el archivo pom.xml. Una vez ubicado en este directorio se debe compilar el programa, para esto, utilice el siguiente comando:
-
-```
-mvn package
-```
-
-## Diseño
-
-La aplicación inicial llamada RoundRobin va a recibir las los logs por parte del usuario, esta estará montada en una
-instancia de EC2 que posteriormente será conectada a un LoadBalancer el cual conectara 3 imagenes docker corriendo por distintos
-puertos y guardara los logs en la base de datos MongoDB.
+# Aplicación distribuida segura en todos sus frentes
 
 
+Desarrolle una aplicación Web segura con los siguientes requerimientos:
+
+1. Debe permitir un acceso seguro desde el browser a la aplicación. Es decir debe garantizar autenticación, autorización e integridad de usuarios.
+2. Debe tener al menos dos computadores comunicacndose entre ellos y el acceso de servicios remotos debe garantizar: autenticación, autorización e integridad entre los servicios. Nadie puede invocar los servicios si no está autorizado.
+
+3. Explique como escalaría su arquitectura de seguridad para incorporar nuevos servicios.
+
+## Entregables:
+
+1. Código en github, bien documentado.
+2. Informe que describe la arquitectura de seguridad de su prototipo. (en el README)
+3. Video de experimento en AWS
 
 
-### MongoDB
+## Ayudas:
 
-Se utilizó una imagén de mongo que esta publicada en un repositorio de Docker Hub para que posteriormente se añadiera
-al docker-compose.yml:
+https://github.com/tipsy/spark-ssl
 
-```
-version: '2'
+https://www.baeldung.com/spring-boot-https-self-signed-certificate
+
+https://docs.oracle.com/cd/E19798-01/821-1841/gjrgy/
+
+https://docs.oracle.com/cd/E19509-01/820-3503/ggfen/index.html
+
+https://aws.amazon.com/es/serverless/build-a-web-app/
 
 
-services:
-web:
-build:
-context: .
-dockerfile: Dockerfile
-container_name: web
-ports:
-- "8087:6000"
-db:
-image: mongo:3.6.1
-container_name: db
-volumes:
-- mongodb:/data/db
-- mongodb_config:/data/configdb
-ports:
-- 27017:27017
-command: mongod
+## Arquitectura propuesta
 
-volumes:
-mongodb:
-mongodb_config:
+<img src="./resources/images/01-Arquitectura.jpg" />
+
+
+## **Prerrequisitos**
+
+-   [Git](https://git-scm.com/downloads) - Sistema de control de versiones
+-   [Maven](https://maven.apache.org/download.cgi) - Gestor de dependencias
+-   [Java 8](https://www.java.com/download/ie_manual.jsp) - Entorno de desarrollo
+-   [Intellij Idea](https://www.jetbrains.com/es-es/idea/download/) (Opcional)
+
+## Configuracion ralizada para los certificados
+
+
+Para la generacion de certificados, se utilizo la siguiente contraseña
+```java
+public class Password {
+    public static String keyStorePassword = "123456";
+}
 ```
 
-Como se puede observar se agregó como servicio con el nombre db utilizando la imagen mongo:3.6.1
+1. Se creo una carpeta llamada keystores en la raiz del proyecto
+2. Se genero un certificado digital con el siguiente comando
 
-### LogService
+    ```
+    keytool -genkeypair -alias ecikeypair -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore ecikeystore.p12 -validity 3650
+    ```
+   Se debe de llenar con la siguiente informacion( de manera local)
+   ```
+   localhost-> aqui debe ir el nombre del servidor
+   AREP
+   ECI
+   Bogota
+   Bogota D.C.
+   CO
+   yes
+   ```
+   
+  
 
-Servicio en el cual se podrán registrar en la base de datos descrita anteriormente diferentes mensajes puestos por el usuario.
+    
+## **Instrucciones de ejecución local**
 
-El servicio de logs se realizo mediante el framework Spark en donde se añadieron dos endpoints, uno
-correspondiente al metodo POST para poder insertar los mensajes de manera correcta en la base de datos, y otro
-con el metodo GET para poder obtener los 10 ultimos logs.
+Desde cmd clonar el repositorio
 
+    ```git
+    https://github.com/liontama2121/AREP-TALLER5-2023-1
+    ```
 
-
-### Creación de contenedores
-
-Para que la imagen de docker pueda ejecutar la aplicación java se deberá crear el siguiente DockerFile:
-
-```
-FROM openjdk:8
-
-WORKDIR /usrapp/bin
-
-ENV PORT 6000
-
-COPY /target/classes /usrapp/bin/classes
-COPY /target/dependency /usrapp/bin/dependency
-
-CMD["java","cp","./classes:./dependency/*","co.edu.escuelaing.sparkdockerdemolive.SparkWebServer"]
-```
-
-El cual al ejecutarse ejecutara la instruccion para poder compilar el proyecto. A continuación se debera ejecutar los siguientes
-comandos en el directorio raiz de nuestro proyecto para generar las dependencias y estas puedan ser añadidas a la imagen:
+Ahora procederemos a iniciar el servidor HelloServer
 
 ```
-mvn clean
-mvn install
+java -cp "target/classes;target/dependency/*" co.edu.escuelaing.sparkdockerdemolive.SparkWebServer
+```
+Ejecutamos el proyecto
+```maven
+mvn exec:java -Dexec.mainClass="eco.edu.escuelaing.sparkdockerdemolive.App"
+```
+Una vez tengamos el proyecto en ejecucion, desde nuestro navegador colocaremos la ruta
+```
+https://localhost:5000/
 ```
 
-Ahora se crearan tres contenedores docker, de manera que se mapeen los puertos
+y nos saldra la siguiente ventana
 
-Para ver que efectivamente los contenedores se hallan ejecutado y creado utilizaremos el comando:
+<img src="./resources/images/05-Login.jpg" alt="login" />
 
-``
+Cabe recalcar que el login solo detectara los siguientes usuarios
+```java
+private static void generateUsers() {
+ users.put("juank", hasher.hash("juan133812"));
+        users.put("leon", hasher.hash("solopola"));
+        users.put("jorge", hasher.hash("srcode"));
+        users.put("test", hasher.hash("test"));
+
+## Usuarios no autenticados o no existentes
+
+<img src="./resources/images/6-usuario-no-existente.jpg" alt="badRequest" />
+
+<br />
 
 
-### Subir imagenes a DockerHub
-
-Para subir una imagen a DockerHub se debera tener una cuenta creada en el mismo, y crear 2 repositorios,
-uno para la base de datos MongoDB y otro para la aplicación Java, posteriormente utilizaremos el siguiente comando
-para asociar cada una de las imágenes a un repositorio en DockerHub.
+<img src="./resources/images/06-usuario-no-existente-2.jpg" alt="badRequest-2" />
 
 
+## Usuarios existentes y autenticados
 
+<img src="./resources/images/07-usuario-existente.jpg" alt="goodRequest" />
 
-`
+<br />
+
+<img src="./resources/images/07-usuario-existente-2.jpg" alt="goodRequest-2" />
+
+# Instancias AWS:
+
+#Maquina1
+
+ec2-3-94-29-8.compute-1.amazonaws.com
+
+#Maquina2
+
+ ec2-100-24-123-218.compute-1.amazonaws.com
+
 ### Autor
-- Juan Molina - Fecha: 09/03/2023
+- juan Camilo Molina 
+
 
 
